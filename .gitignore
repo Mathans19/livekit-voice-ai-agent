@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+
+# Virtual environments
+.venv/
+venv/
+
+# Resume cache
+resume_cache/
+*.pdf
+*.docx
+*.txt
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>AI Voice Interview Agent</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0a0a0f;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      padding: 20px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .stars {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .star {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: white;
+      border-radius: 50%;
+      animation: twinkle 3s infinite;
+    }
+
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.2; }
+      50% { opacity: 1; }
+    }
+
+    .container {
+      background: rgba(15, 15, 25, 0.8);
+      backdrop-filter: blur(20px);
+      border-radius: 32px;
+      padding: 48px 40px;
+      box-shadow: 0 0 60px rgba(138, 43, 226, 0.3),
+                  0 0 100px rgba(0, 191, 255, 0.2);
+      max-width: 520px;
+      width: 100%;
+      text-align: center;
+      border: 1px solid rgba(138, 43, 226, 0.3);
+      position: relative;
+      z-index: 10;
+    }
+
+    .glow-circle {
+      position: absolute;
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(138, 43, 226, 0.4) 0%, transparent 70%);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      animation: pulse-glow 3s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    @keyframes pulse-glow {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+      50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.8; }
+    }
+
+    .avatar-container {
+      position: relative;
+      width: 140px;
+      height: 140px;
+      margin: 0 auto 24px;
+    }
+
+    .avatar {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #8a2be2 0%, #00bfff 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 70px;
+      box-shadow: 0 0 40px rgba(138, 43, 226, 0.6);
+      transition: all 0.3s ease;
+      position: relative;
+      z-index: 2;
+    }
+
+    .orbit {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 180px;
+      height: 180px;
+      border: 2px solid rgba(138, 43, 226, 0.3);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      animation: rotate 10s linear infinite;
+    }
+
+    .orbit-dot {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: #00bfff;
+      border-radius: 50%;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      box-shadow: 0 0 10px #00bfff;
+    }
+
+    @keyframes rotate {
+      from { transform: translate(-50%, -50%) rotate(0deg); }
+      to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    .avatar.talking {
+      animation: avatarPulse 1.5s infinite;
+      box-shadow: 0 0 60px rgba(138, 43, 226, 0.9);
+    }
+
+    @keyframes avatarPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    h2 {
+      font-size: 36px;
+      background: linear-gradient(135deg, #8a2be2, #00bfff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
+      font-weight: 800;
+      letter-spacing: -1px;
+    }
+
+    .subtitle {
+      color: #a0a0b0;
+      font-size: 15px;
+      margin-bottom: 24px;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+
+    #startBtn, #resumeBtn {
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+      border: none;
+      background: linear-gradient(135deg, #8a2be2 0%, #00bfff 100%);
+      color: white;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 10px 40px rgba(138, 43, 226, 0.5);
+      position: relative;
+      overflow: hidden;
+    }
+
+    #resumeBtn {
+      background: linear-gradient(135deg, #00bfff 0%, #8a2be2 100%);
+      width: 140px;
+      height: 140px;
+      font-size: 16px;
+    }
+
+    #startBtn::before, #resumeBtn::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+      transform: rotate(45deg);
+      animation: shine 3s infinite;
+    }
+
+    @keyframes shine {
+      0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+      100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+    }
+
+    #startBtn:hover, #resumeBtn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 15px 50px rgba(138, 43, 226, 0.7);
+    }
+
+    #startBtn:active, #resumeBtn:active {
+      transform: scale(0.98);
+    }
+
+    #startBtn.active {
+      background: linear-gradient(135deg, #ff006e 0%, #ff4d00 100%);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        box-shadow: 0 0 0 0 rgba(255, 0, 110, 0.7);
+      }
+      50% {
+        box-shadow: 0 0 0 40px rgba(255, 0, 110, 0);
+      }
+    }
+
+    #status {
+      margin-top: 24px;
+      font-size: 16px;
+      color: #e0e0f0;
+      font-weight: 500;
+      min-height: 24px;
+    }
+
+    .status-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #00ff88;
+      margin-right: 8px;
+      animation: blink 1.5s infinite;
+      box-shadow: 0 0 10px #00ff88;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .wave-container {
+      display: none;
+      margin-top: 24px;
+      height: 80px;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .wave-container.active {
+      display: flex;
+    }
+
+    .wave-bar {
+      width: 6px;
+      height: 20px;
+      background: linear-gradient(180deg, #8a2be2 0%, #00bfff 100%);
+      border-radius: 3px;
+      animation: wave 1.2s ease-in-out infinite;
+      box-shadow: 0 0 10px rgba(138, 43, 226, 0.5);
+    }
+
+    .wave-bar:nth-child(2) { animation-delay: 0.1s; }
+    .wave-bar:nth-child(3) { animation-delay: 0.2s; }
+    .wave-bar:nth-child(4) { animation-delay: 0.3s; }
+    .wave-bar:nth-child(5) { animation-delay: 0.4s; }
+    .wave-bar:nth-child(6) { animation-delay: 0.5s; }
+    .wave-bar:nth-child(7) { animation-delay: 0.6s; }
+
+    @keyframes wave {
+      0%, 100% { height: 20px; }
+      50% { height: 70px; }
+    }
+
+    .particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: #8a2be2;
+      border-radius: 50%;
+      opacity: 0;
+      animation: float-up 4s ease-in infinite;
+    }
+
+    @keyframes float-up {
+      0% {
+        transform: translateY(0) scale(1);
+        opacity: 0;
+      }
+      50% {
+        opacity: 0.6;
+      }
+      100% {
+        transform: translateY(-100vh) scale(0);
+        opacity: 0;
+      }
+    }
+
+    .info-card {
+      margin-top: 20px;
+      padding: 14px;
+      background: rgba(138, 43, 226, 0.1);
+      border-radius: 16px;
+      border: 1px solid rgba(138, 43, 226, 0.3);
+      font-size: 13px;
+      color: #a0a0b0;
+      line-height: 1.5;
+      text-align: left;
+    }
+
+    #resumeInput {
+      display: none;
+    }
+
+    .upload-status {
+      margin-top: 12px;
+      font-size: 14px;
+      color: #00ff88;
+      min-height: 20px;
+    }
+
+    .resume-indicator {
+      display: inline-block;
+      padding: 6px 14px;
+      background: rgba(0, 255, 136, 0.2);
+      border: 1px solid rgba(0, 255, 136, 0.4);
+      border-radius: 20px;
+      font-size: 12px;
+      color: #00ff88;
+      margin-top: 8px;
+    }
+
+    .resume-indicator.empty {
+      background: rgba(255, 136, 0, 0.2);
+      border-color: rgba(255, 136, 0, 0.4);
+      color: #ff8800;
+    }
+  </style>
+</head>
+<body>
+  <div class="stars" id="starsContainer"></div>
+  <div class="particles" id="particlesContainer"></div>
+  
+  <div class="container">
+    <div class="glow-circle"></div>
+    
+    <div class="avatar-container">
+      <div class="orbit">
+        <div class="orbit-dot"></div>
+      </div>
+      <div class="avatar" id="avatar">🎤</div>
+    </div>
+    
+    <h2>AI Interview Agent</h2>
+    <p class="subtitle">Voice-powered technical interviews</p>
+    
+    <div class="button-group">
+      <button id="startBtn">START<br>CHAT</button>
+      <button id="resumeBtn">UPLOAD<br>RESUME</button>
+    </div>
+
+    <input type="file" id="resumeInput" accept=".txt">
+    <div class="upload-status" id="uploadStatus"></div>
+    <div class="resume-indicator empty" id="resumeIndicator">📄 No resume uploaded</div>
+    
+    <div class="wave-container" id="waveContainer">
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+    </div>
+    
+    <p id="status">Ready to connect</p>
+    
+    <div class="info-card">
+      <strong>🎯 How it works:</strong><br>
+      1. <strong>Upload Resume:</strong> Click "UPLOAD RESUME" and select your .txt file<br>
+      2. <strong>Start Chat:</strong> Click "START CHAT" to connect<br>
+      3. <strong>Ask Questions:</strong> Ask "What is my name?" (uses RAG) or "What is Avatar?" (uses web search)<br>
+      4. <strong>Start Interview:</strong> Say "start interview" to begin 2-question interview<br>
+      5. <strong>Get Scored:</strong> Answer both questions and receive your final score
+    </div>
+  </div>
+
+<script type="module">
+  import { connect, Room, createLocalAudioTrack } from "https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.esm.js";
+
+  // Create starfield
+  const starsContainer = document.getElementById('starsContainer');
+  for (let i = 0; i < 100; i++) {
+    const star = document.createElement('div');
+    star.className = 'star';
+    star.style.left = Math.random() * 100 + '%';
+    star.style.top = Math.random() * 100 + '%';
+    star.style.animationDelay = Math.random() * 3 + 's';
+    starsContainer.appendChild(star);
+  }
+
+  // Create floating particles
+  const particlesContainer = document.getElementById('particlesContainer');
+  setInterval(() => {
+    const particle = document.createElement('div');
+    particle.className = 'particle';
+    particle.style.left = Math.random() * 100 + '%';
+    particle.style.bottom = '0';
+    particle.style.animationDuration = (Math.random() * 2 + 3) + 's';
+    particlesContainer.appendChild(particle);
+    
+    setTimeout(() => particle.remove(), 4000);
+  }, 300);
+
+  let isConnected = false;
+
+  // Check resume status on load
+  async function checkResumeStatus() {
+    try {
+      const response = await fetch('http://localhost:3000/resume-status');
+      const data = await response.json();
+      
+      const indicator = document.getElementById('resumeIndicator');
+      if (data.has_resume) {
+        indicator.className = 'resume-indicator';
+        indicator.textContent = `✅ Resume ready (${data.metadata.num_questions || 2} questions)`;
+      } else {
+        indicator.className = 'resume-indicator empty';
+        indicator.textContent = '📄 No resume uploaded';
+      }
+    } catch (error) {
+      console.log('Could not check resume status:', error);
+    }
+  }
+
+  // Check on page load
+  checkResumeStatus();
+
+  // Resume upload handler
+  document.getElementById('resumeBtn').onclick = () => {
+    document.getElementById('resumeInput').click();
+  };
+
+  document.getElementById('resumeInput').onchange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const uploadStatus = document.getElementById('uploadStatus');
+    const indicator = document.getElementById('resumeIndicator');
+    
+    uploadStatus.textContent = '📤 Uploading ' + file.name + '...';
+    indicator.textContent = '⏳ Processing...';
+    
+    try {
+      const text = await file.text();
+      
+      if (text.trim().length < 50) {
+        uploadStatus.textContent = '❌ Resume too short (minimum 50 characters)';
+        indicator.className = 'resume-indicator empty';
+        indicator.textContent = '📄 Upload failed';
+        return;
+      }
+      
+      const response = await fetch('http://localhost:3000/upload-resume', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ resume: text })
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        uploadStatus.textContent = `✅ ${result.message}`;
+        indicator.className = 'resume-indicator';
+        indicator.textContent = `✅ Resume ready (${result.questions_count} questions)`;
+        console.log('Questions generated:', result.questions);
+      } else {
+        uploadStatus.textContent = '❌ Upload failed: ' + result.error;
+        indicator.className = 'resume-indicator empty';
+        indicator.textContent = '📄 Upload failed';
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      uploadStatus.textContent = '❌ Upload error: ' + error.message;
+      indicator.className = 'resume-indicator empty';
+      indicator.textContent = '📄 Upload failed';
+    }
+  };
+
+  async function start() {
+    if (isConnected) return;
+
+    const btn = document.getElementById("startBtn");
+    const status = document.getElementById("status");
+    const waveContainer = document.getElementById("waveContainer");
+    const avatar = document.getElementById("avatar");
+
+    status.innerHTML = "Requesting token...";
+
+    try {
+      const res = await fetch("http://localhost:3000/token");
+      const data = await res.json();
+
+      const room = new Room();
+
+      await room.connect(data.url, data.token);
+
+      status.innerHTML = '<span class="status-dot"></span>Connected!';
+      btn.textContent = "LISTENING";
+      btn.classList.add("active");
+      avatar.classList.add("talking");
+      avatar.textContent = "🎧";
+
+      const micTrack = await createLocalAudioTrack();
+      await room.localParticipant.publishTrack(micTrack);
+
+      room.on("trackSubscribed", (track, publication, participant) => {
+        if (track.kind === "audio") {
+          const audio = document.createElement("audio");
+          audio.srcObject = new MediaStream([track.mediaStreamTrack]);
+          audio.autoplay = true;
+          document.body.appendChild(audio);
+        }
+      });
+
+      waveContainer.classList.add("active");
+      status.innerHTML = '<span class="status-dot"></span>Ask me anything! Say "start interview" to begin';
+      isConnected = true;
+
+    } catch (error) {
+      status.textContent = "Connection failed. Try again.";
+      console.error(error);
+    }
+  }
+
+  document.getElementById("startBtn").onclick = start;
+</script>
+
+</body>
+</html>
